@@ -53,8 +53,11 @@ public class UpdatePricesHandler :
                 });
             }
 
-            // Save only new records
-            await _repo.AddPricesAsync(toInsert, ct);
+            if (toInsert.Any())
+            {
+                // Save only new records
+                await _repo.AddPricesAsync(toInsert, ct);
+            }
 
             return new UpdatePricesResult(true, toInsert.Count);
         }

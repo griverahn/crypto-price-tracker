@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoPriceTracker.Infrastr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoPriceTracker.Api", "src\CryptoPriceTracker.Api\CryptoPriceTracker.Api.csproj", "{CEEBA078-D496-4D41-A25B-4C2B2E6194D0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EEA5C9D5-2632-4A6C-B244-0D383301A19F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoPriceTracker.Tests.Unit", "tests\CryptoPriceTracker.Tests.Unit\CryptoPriceTracker.Tests.Unit.csproj", "{F70E894A-0159-4EE3-98F8-5CA7C1681A0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +38,10 @@ Global
 		{CEEBA078-D496-4D41-A25B-4C2B2E6194D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEEBA078-D496-4D41-A25B-4C2B2E6194D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEEBA078-D496-4D41-A25B-4C2B2E6194D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F70E894A-0159-4EE3-98F8-5CA7C1681A0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F70E894A-0159-4EE3-98F8-5CA7C1681A0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F70E894A-0159-4EE3-98F8-5CA7C1681A0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F70E894A-0159-4EE3-98F8-5CA7C1681A0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,5 +54,6 @@ Global
 		{2D669685-DBE4-41F6-A818-870B402C2471} = {E5913F45-527F-469F-99D7-D6CE8F3D377E}
 		{24730945-253C-4260-8C81-900B8FD4ED55} = {E5913F45-527F-469F-99D7-D6CE8F3D377E}
 		{CEEBA078-D496-4D41-A25B-4C2B2E6194D0} = {E5913F45-527F-469F-99D7-D6CE8F3D377E}
+		{F70E894A-0159-4EE3-98F8-5CA7C1681A0C} = {EEA5C9D5-2632-4A6C-B244-0D383301A19F}
 	EndGlobalSection
 EndGlobal
