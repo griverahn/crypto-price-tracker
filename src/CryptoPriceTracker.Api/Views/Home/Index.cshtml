@@ -2,17 +2,72 @@
     ViewData["Title"] = "Crypto Price Tracker";
 }
 
-<h1>Crypto Price Tracker</h1>
+<h1 class="title">Crypto Price Tracker</h1>
 
-<button id="updateBtn">Update Prices</button>
-<div id="statusMessage"></div>
+<button id="updateBtn">⟳ Update Prices</button>
+<span id="statusMessage"></span>
 
+<table id="pricesTable">
+    <thead>
+        <tr>
+            <th>Icon</th>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Price (USD)</th>
+            <th>Last Updated</th>
+            <th>Trend</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- rows added by JS -->
+    </tbody>
+</table>
+
+<link rel="stylesheet" href="~/css/site.css" />
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 <script>
-    document.getElementById("updateBtn").addEventListener("click", async () => {
-        const response = await fetch("/api/crypto/update-prices", {
-            method: "POST"
-        });
-        const message = response.ok ? "✅ Prices updated!" : "❌ Failed to update.";
-        document.getElementById("statusMessage").innerText = message;
+const TableBody   = document.querySelector("#pricesTable tbody");
+const StatusLabel = document.getElementById("statusMessage");
+const BtnUpdate   = document.getElementById("updateBtn");
+
+// convert UTC to local zone (Luxon)
+const toLocal = utc => luxon.DateTime.fromISO(utc, { zone: 'utc' })
+                                     .setZone(luxon.DateTime.local().zoneName)
+                                     .toLocaleString(luxon.DateTime.DATETIME_MED);
+
+async function refreshTable() {
+    TableBody.innerHTML = "";  // clear table
+    const res = await fetch("/api/crypto/latest-prices");
+    const data = await res.json();
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><img src="${row.iconUrl}" alt="${row.symbol}" width="24" /></td>
+          <td>${row.name}</td>
+          <td>${row.symbol}</td>
+          <td>$${row.price.toLocaleString()}</td>
+          <td>${toLocal(row.timestampUtc)}</td>
+          <td>${row.trend}</td>
+        `;
+        TableBody.appendChild(tr);
     });
+}
+
+BtnUpdate.addEventListener("click", async () => {
+    BtnUpdate.disabled = true;
+    StatusLabel.textContent = "Updating…";
+
+    const res = await fetch("/api/crypto/update-prices", { method: "POST" });
+    if (res.ok) {
+        const body = await res.json();
+        StatusLabel.textContent = `✅ Updated (${body.inserted || body.updatedCount})`;
+        await refreshTable();
+    } else {
+        StatusLabel.textContent = "❌ Update failed";
+    }
+    BtnUpdate.disabled = false;
+});
+
+// refresh table on initial page load
+refreshTable();
 </script>

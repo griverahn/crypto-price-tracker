@@ -28,9 +28,11 @@ namespace CryptoPriceTracker.Api.Controllers
         {
             var result = await _mediator.Send(new UpdatePricesCommand());
 
-            return result.Success
-                ? Ok(new { message = $"Prices updated ({result.Inserted})", inserted = result.Inserted })
-                : StatusCode(500, result.Error);
+            return Ok(new {
+                success      = result.Success,
+                updatedCount = result.Inserted, 
+                errorMessage = result.Error
+            });
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ using CryptoPriceTracker.Application.Commands.UpdatePrices;
 using CryptoPriceTracker.Application;
 using CryptoPriceTracker.Infrastructure;
 using CryptoPriceTracker.Infrastructure.Persistence;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddControllersWithViews()
     .AddNewtonsoftJson();
+
+builder.Services.AddControllersWithViews()
+       .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+
 
 // ---------- DbContext (SQLite) ----------
 var conn = builder.Configuration.GetConnectionString("Default") ?? "Data Source=crypto.db";
