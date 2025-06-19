@@ -2,23 +2,30 @@ using Xunit;
 using Moq;
 using CryptoPriceTracker.Application.Commands.UpdatePrices;
 using CryptoPriceTracker.Application.Interfaces;
+using CryptoPriceTracker.Domain.Entities;
 
 public class UpdatePricesHandlerTests
 {
     [Fact]
-    public async Task Handles_Duplicates_Correctly()
+    public async Task Inserts_only_non_duplicate_prices()
     {
         // Arrange
-        var repo = new Mock<ICryptoRepository>();
-        var fetcher = new Mock<IPriceFetcher>();
-
-        // Setup mocks
-        fetcher.Setup(f => f.FetchPricesAsync()).ReturnsAsync(new List<CryptoPrice>
+        var assets = new List<CryptoAsset>
         {
-            new CryptoPrice { Id = 1, Price = 100 },
-            new CryptoPrice { Id = 2, Price = 200 },
-            new CryptoPrice { Id = 1, Price = 100 }
-        });
+            new() { Id = 1, Name = "Bitcoin", Symbol = "BTC", ExternalId = "bitcoin" }
+        };
+
+        var repo = new Mock<ICryptoRepository>();
+        repo.Setup(r => r.GetAssetsAsync()).ReturnsAsync(assets);
+        repo.Setup(r => r.AddPricesAsync(It.IsAny<IEnumerable<CryptoPrice>>(), default))
+            .Returns(Task.CompletedTask);
+
+        var fetcher = new Mock<IPriceFetcher>();
+        fetcher.Setup(f => f.FetchPricesAsync(It.IsAny<IEnumerable<CryptoAsset>>(), default))
+               .ReturnsAsync(new Dictionary<string, (decimal, DateTime, string)>
+               {
+                   { "bitcoin", (60_000m, DateTime.UtcNow, "https://img") }
+               });
 
         var handler = new UpdatePricesHandler(repo.Object, fetcher.Object);
 
@@ -27,6 +34,8 @@ public class UpdatePricesHandlerTests
 
         // Assert
         Assert.True(result.Success);
-        repo.Verify(r => r.SaveAsync(It.IsAny<IEnumerable<CryptoPrice>>()), Times.Once);
+        Assert.Equal(1, result.Inserted);
+        repo.Verify(r => r.AddPricesAsync(It.IsAny<IEnumerable<CryptoPriceHistory>>(), default),
+                    Times.Once);
     }
 }

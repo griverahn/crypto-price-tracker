@@ -51,7 +51,5 @@ app.MapControllerRoute(
 
 app.MapControllers();
 
-// ---------- Redirection ----------
-app.MapGet("/", () => Results.Redirect("/Home/Index"));
 // ---------- Run ----------
 app.Run();

@@ -8,7 +8,7 @@ namespace CryptoPriceTracker.Domain.Entities
         public string ExternalId { get; set; } = string.Empty;        
         /// URL of the image returned by the API
         public string? IconUrl { get; set; }
-        public ICollection<CryptoPriceHistory> PriceHistory { get; set; } = new List<CryptoPriceHistory>();
+        public ICollection<CryptoPriceHistory>? PriceHistory { get; set; }
     }
 }
 

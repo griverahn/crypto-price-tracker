@@ -26,6 +26,11 @@ public static class InfrastructureServiceCollectionExtensions
         // HTTP client + Polly retry (nuevo patrón v3)
         services.AddHttpClient<IPriceFetcher, CoinGeckoHttpClient>()
                 .AddPolicyHandler(GetRetryPolicy());
+        // Add User-Agent header to CoinGecko client
+        services.AddHttpClient<IPriceFetcher, CoinGeckoHttpClient>(client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "CryptoPriceTracker/1.0 (+github)");
+        });
 
         return services;
     }

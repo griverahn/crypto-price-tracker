@@ -18,26 +18,25 @@ namespace CryptoPriceTracker.Api.Controllers
         }
 
         /// <summary>
-        /// Dispara la actualización de precios:
-        /// 1. Consulta CoinGecko a través del IPriceFetcher.
-        /// 2. Valida deduplicados.
-        /// 3. Persiste en la base de datos mediante ICryptoRepository.
+        /// Triggers the price update:
+        /// 1. Queries CoinGecko via IPriceFetcher.
+        /// 2. Validates deduplicates.
+        /// 3. Persists in the database via ICryptoRepository.
         /// </summary>
         [HttpPost("update-prices")]
         public async Task<IActionResult> UpdatePrices()
         {
             var result = await _mediator.Send(new UpdatePricesCommand());
 
-            // Puedes devolver un DTO más rico si tu handler lo provee
             return result.Success
-                ? Ok(new { message = "Prices updated.", updated = result.UpdatedCount })
-                : StatusCode(500, result.ErrorMessage);
+                ? Ok(new { message = $"Prices updated ({result.Inserted})", inserted = result.Inserted })
+                : StatusCode(500, result.Error);
         }
 
         /// <summary>
-        /// Devuelve el último precio guardado por activo,
-        /// inclu­yendo tendencia y URL del icono.
-        /// Consumido por la vista Razor (Index.cshtml).
+        /// Returns the latest saved price by asset,
+        /// including trend and icon URL.
+        /// Consumed by the Razor view (Index.cshtml).
         /// </summary>
         [HttpGet("latest-prices")]
         public async Task<IActionResult> GetLatestPrices()

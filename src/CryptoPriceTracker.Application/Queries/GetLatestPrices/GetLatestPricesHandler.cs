@@ -19,13 +19,28 @@ public class GetLatestPricesHandler :
 
         var list = assets.Select(a =>
         {
-            var prices = a.PriceHistory
-                          .OrderByDescending(p => p.Date)
-                          .Take(2) // get latest and previous price
-                          .ToList();
+            // get latest 2 prices for this asset
+            // if no history, return empty list
+            var prices = a.PriceHistory != null
+                ? a.PriceHistory.OrderByDescending(p => p.Date).Take(2).ToList()
+                : new List<CryptoPriceHistory>();
 
             // Get latest and previous prices
             var latest  = prices.FirstOrDefault();  
+
+            if (latest is null)
+            {
+                // Without history => return price 0 and neutral trend
+                return new LatestPriceDto(
+                    a.Name,
+                    a.Symbol,
+                    0m,
+                    "USD",
+                    a.IconUrl ?? string.Empty,
+                    DateTime.UtcNow,
+                    "➖");
+            }
+
             var previous = prices.Skip(1).FirstOrDefault(); 
 
             decimal latestPrice   = latest!.Price;          

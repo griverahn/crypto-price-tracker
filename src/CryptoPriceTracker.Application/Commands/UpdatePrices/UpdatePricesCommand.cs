@@ -1,7 +1,5 @@
-namespace CryptoPriceTracker.Application.Commands.UpdatePrices;
-
 using MediatR;
 
-public record UpdatePricesCommand() : IRequest<UpdatePricesResult>;
+namespace CryptoPriceTracker.Application.Commands.UpdatePrices;
 
-public record UpdatePricesResult(bool Success, int UpdatedCount, string? ErrorMessage);
+public record UpdatePricesCommand() : IRequest<UpdatePricesResult>;

@@ -8,32 +8,40 @@ public class CoinGeckoHttpClient : IPriceFetcher
 {
     private readonly HttpClient _http;
 
-    public CoinGeckoHttpClient(HttpClient http) => _http = http;
+    public CoinGeckoHttpClient(HttpClient http)
+    {
+        _http = http;
+
+        // CoinGecko refuses requests without User-Agent
+        if (!_http.DefaultRequestHeaders.Contains("User-Agent"))
+            _http.DefaultRequestHeaders.Add(
+                "User-Agent", "CryptoPriceTracker/1.0 (+https://github.com/griverahn)");
+    }
 
     public async Task<IReadOnlyDictionary<string,
         (decimal price, DateTime timestamp, string iconUrl)>> FetchPricesAsync(
             IEnumerable<CryptoAsset> assets,
             CancellationToken ct = default)
     {
-        // 1) Build the list of IDs required by CoinGecko
+        // Build the list of IDs required by CoinGecko
         var ids = string.Join(',', assets.Select(a => a.ExternalId));
         if (string.IsNullOrWhiteSpace(ids))
             return new Dictionary<string, (decimal, DateTime, string)>();
 
-        // 2) Complete endpoint
+        // Complete endpoint
         var url = $"https://api.coingecko.com/api/v3/coins/markets" +
                 $"?vs_currency=usd&ids={ids}&price_change_percentage=24h";
 
-        // 3) HTTP call
+        // HTTP call
         using var response = await _http.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
 
-        // 4) Deserialize JSON
+        // Deserialize JSON
         await using var stream = await response.Content.ReadAsStreamAsync(ct);
         var data = await JsonSerializer.DeserializeAsync<List<CoinDto>>(stream, cancellationToken: ct)
                 ?? new();
 
-        // 5) Map to output
+        // Map to output
         return data.ToDictionary(
             d => d.id,
             d => (d.current_price,
