@@ -48,9 +48,9 @@ public class GetLatestPricesHandler :
             decimal previousPrice = previous?.Price ?? latestPrice;
 
             // Calculate trend
-            string trend = latestPrice > previousPrice ? "🔼"
-                        : latestPrice < previousPrice ? "🔽"
-                        : "➖";
+            string trend = latestPrice > previousPrice ? "▲"
+                        : latestPrice < previousPrice ? "▼"
+                        : "▬";   
                         
             decimal? percentageChange = previousPrice == 0 ? null
             : Math.Round(((latestPrice - previousPrice) / previousPrice) * 100, 2);
