@@ -6,7 +6,9 @@
 
 ## 1 · Challenge Overview
 
-This repository contains my solution for the **.NET 6 Full‑Stack Developer Assessment** provided by **Envision Horizons**. The original brief required fixing and extending a Razor Pages + SQLite project that tracks cryptocurrency prices via the CoinGecko API.
+This repository contains my solution for the **.NET 6 Full‑Stack Developer Assessment** provided by **Envision Horizons**. 
+The original brief required fixing and extending a Razor Pages + SQLite project that tracks cryptocurrency prices via the 
+CoinGecko API.
 
 ### Key Deliverables & Acceptance Criteria
 
@@ -137,13 +139,13 @@ All criteria above are ✅ met (see **section 8** Checklist).
 
 ---
 
-## 10 · Changelog (abridged)
+## 10 · Changelog 
 
 | Date        | Note                                             |
 | ----------- | ------------------------------------------------ |
 | 18‑Jun‑2025 | Initial Clean Architecture skeleton & DI wiring. |
 | 18‑Jun‑2025 | Added CoinGecko client with Polly retry.         |
-| 19‑Jun‑2025 | Razor UI, spinner, tests & README finalized.     |
+| 19‑Jun‑2025 | Razor UI, spinner, chart view, tests & README finalized.     |
 
 ---
 
