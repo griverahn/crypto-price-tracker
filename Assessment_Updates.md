@@ -1,125 +1,150 @@
 # Crypto Price Tracker – Technical Assessment (Clean Architecture Rewrite)
 
-*Last updated: ****18 Jun 2025***
+*Last updated: ****19 Jun 2025***
 
 ---
 
 ## 1 · Challenge Overview
 
-This repository contains my solution for the **.NET 6 Full‑Stack Developer Assessment** provided by Envision Horizons. The original brief required fixing and extending a Razor Pages/SQLite project that tracks cryptocurrency prices from the CoinGecko API.
+This repository contains my solution for the **.NET 6 Full‑Stack Developer Assessment** provided by **Envision Horizons**. The original brief required fixing and extending a Razor Pages + SQLite project that tracks cryptocurrency prices via the CoinGecko API.
 
-Key deliverables
+### Key Deliverables & Acceptance Criteria
 
-|  ID  | Acceptance Criterion                                                                            |
-| ---- | ----------------------------------------------------------------------------------------------- |
-|  A1  | Project builds on **.NET 6 SDK 6.0.428**                                                        |
-|  A2  | `CryptoPriceService` logic fixed (fetch, async, dedupe, persist)                                |
-|  A3  | API endpoints:  • POST `/api/crypto/update-prices`  • GET `/api/crypto/latest-prices`           |
-|  A4  | Razor `Index.cshtml` shows Name, Symbol, Price, Currency, Icon, Last Updated (client TZ), Trend |
-|  A5  | `IconUrl` stored in DB                                                                          |
-|  A6  | Clear UI feedback after update attempt                                                          |
-|  A7  | ≥1 unit test validating logic                                                                   |
-|  A8  | No DB file / migrations committed                                                               |
-|  A9  | README documents any structural changes                                                         |
+| ID     | Description                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------------- |
+| **A1** | Project builds with **.NET 6 SDK 6.0.428**                                                        |
+| **A2** | Price‑update logic (async, dedupe, persist) implemented in Clean Architecture handlers            |
+| **A3** | **POST** `/api/crypto/update-prices` & **GET** `/api/crypto/latest-prices`                        |
+| **A4** | Razor **Index.cshtml** shows Name, Symbol, Price, Currency, Icon, Last Updated (client TZ), Trend |
+| **A5** | `IconUrl` stored in DB                                                                            |
+| **A6** | Clear UI feedback (spinner → success / failure badge)                                             |
+| **A7** | ≥ 2 unit tests validating handler logic                                                           |
+| **A8** | No DB file / EF migrations committed                                                              |
+| **A9** | README documents assumptions, structure & decisions                                               |
+
+All criteria above are ✅ met (see **section 8** Checklist).
 
 ---
 
 ## 2 · Architecture Rationale
 
-|  Layer             | Project                             | Responsibility                                                                             |
-| ------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| **Presentation**   | `CryptoPriceTracker.Api`            | ASP.NET Core MVC + Razor. Thin controllers using MediatR.                                  |
-| **Application**    | `CryptoPriceTracker.Application`    | CQRS handlers (`UpdatePrices`, `GetLatestPrices`), validators, interfaces (ports).         |
-| **Domain**         | `CryptoPriceTracker.Domain`         | Entities `CryptoAsset`, `CryptoPrice`, value objects, domain rules.                        |
-| **Infrastructure** | `CryptoPriceTracker.Infrastructure` | EF Core SQLite persistence, `CoinGeckoHttpClient`, Polly retry, repository implementation. |
+| Layer              | Project                             | Key Responsibility                                                                                                           |
+| ------------------ | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Presentation**   | `CryptoPriceTracker.Api`            | ASP.NET Core MVC + Razor; thin controllers using MediatR; serves static assets from *wwwroot*.                               |
+| **Application**    | `CryptoPriceTracker.Application`    | CQRS/mediator handlers (`UpdatePrices`, `GetLatestPrices`); validation; domain ports (`ICryptoRepository`, `IPriceFetcher`). |
+| **Domain**         | `CryptoPriceTracker.Domain`         | Pure entities `CryptoAsset`, `CryptoPriceHistory`; value objects & rules.                                                    |
+| **Infrastructure** | `CryptoPriceTracker.Infrastructure` | EF Core SQLite persistence, `CoinGeckoHttpClient` with Polly retry, repository implementation.                               |
 
-We selected this **Clean Architecture** approach for:
-
-- **Scalability** – layers are independent; swapping SQLite→MySQL requires only Infrastructure changes.
-- **Testability** – Application layer can be unit‑tested without DB or HTTP.
-- **Reviewer clarity** – folders follow a predictable pattern; original endpoints and Razor view remain unchanged.
+> **Why Clean Architecture?**  Loose coupling enables easier testing, future DB/API swaps, and clear reviewer navigation.
 
 ---
 
 ## 3 · Version Matrix & Tooling
 
-|  Component               | Version                                       | Reason                                                                    |
-| ------------------------ | --------------------------------------------- | ------------------------------------------------------------------------- |
-|  .NET SDK                | **6.0.428** (LTS)                             | Matches assessment requirement; receives security patches until Nov 2025. |
-|  EF Core                 | 6.0.25                                        | Same major as runtime; SQLite provider mature.                            |
-|  MediatR                 | 10.0.1                                        | Latest 10.x compatible with .NET 6; lightweight CQRS.                     |
-|  FluentValidation        | 11.8.x                                        | Declarative validation; integrates with DI.                               |
-|  Polly                   | 7.2.x + `Microsoft.Extensions.Http.Polly` 6.0 | Transient HTTP retries for CoinGecko client.                              |
-|  Swagger (`Swashbuckle`) | 6.5.x                                         | API discoverability during review.                                        |
-|  xUnit                   | 2.6.x                                         | Unit testing framework.                                                   |
-
-Packages are locked to **major 6** where framework compatibility matters. A `global.json` pins the SDK to avoid accidental builds on .NET 8 or other .NET versions.
+| Component            | Version                                       | Rationale                                         |
+| -------------------- | --------------------------------------------- | ------------------------------------------------- |
+| **.NET SDK**         | **6.0.428**                                   | Matches assessment; LTS supported until Nov 2025. |
+| **EF Core / SQLite** | 6.0.25                                        | Same major as runtime; stable provider.           |
+| **MediatR**          | 10.0.1                                        | Lightweight CQRS mediator.                        |
+| **FluentValidation** | 11.8.x                                        | Declarative rules (future work).                  |
+| **Polly**            | 7.2.x + `Microsoft.Extensions.Http.Polly` 6.0 | Transient HTTP retry (2 → 4 → 8 s).               |
+| **Swashbuckle**      | 6.5.x                                         | Swagger UI for reviewer.                          |
+| **xUnit**            | 2.6.x                                         | Unit test framework.                              |
+| **Moq**              | 4.18.x                                        | Mock ports in tests.                              |
+| **Luxon**            | 3.x (CDN)                                     | Client‑side TZ conversion.                        |
 
 ---
 
 ## 4 · Structural Changes
 
-- **Removed** legacy single‑project layout.
-- **Added** solution folders and four separate `.csproj` files (Domain, Application, Infrastructure, Api).
-- **Migrated** entities from `Models/` to `Domain/Entities`.
-- **Replaced** `CryptoPriceService` with `UpdatePricesHandler` (CQRS).
-- **Introduced** `ICryptoRepository` & `IPriceFetcher` ports to decouple persistence & HTTP.
-- **Implemented** DI extensions: `AddApplication()` and `AddInfrastructure()` for clean `Program.cs`.
-- **Added** Polly retry policy on HTTP client (exponential back‑off 2 s → 4 s → 8 s).
-- **Added** `.gitignore` rules for `*.db`, `**/Migrations/`.
-
-> *Commit history documents each refactor step; see branch **`solution/german-rivera`**.*
-
----
-
-## 5 · Dependency Graph
-
-```text
-Api ──► Application ──► Domain
-   │            │
-   └────────► Infrastructure ──► Domain
-```
-
-No layer references a more external one.
+| Change                                                                       | Motivation                                                                       |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Split monolith into **Domain / Application / Infrastructure / Api** projects | Enforces layer boundaries, improves clarity.                                     |
+| Removed `CryptoPriceService.cs`                                              | Replaced by **UpdatePricesHandler** (write) & **GetLatestPricesHandler** (read). |
+| Introduced **ports & adapters** (`ICryptoRepository`, `IPriceFetcher`)       | Decouple Application from EF Core & HTTP.                                        |
+| Added **Polly** retry to CoinGecko client                                    | Handles 429/5xx gracefully.                                                      |
+| Enforced **UNIQUE** index (Asset + Date)                                     | Ensures deduplication at DB level.                                               |
+| Implemented **Razor UI** with vanilla JS + Luxon                             | Displays data, spinner, trend arrows.                                            |
+| Added **wwwroot/css/site.css**                                               | Central static asset location.                                                   |
+| `.gitignore` extended                                                        | Excludes `*.db`, `**/Migrations/`, `bin/`, `obj/`.                               |
 
 ---
 
-## 6 · Build & Run
+## 5 · Build & Run
 
 ```bash
 # Restore & build
 > dotnet build
 
-# Create / update database (local)
-> dotnet ef database update --project src/CryptoPriceTracker.Infrastructure \
+# (Re)create local SQLite file
+> dotnet ef database update \
+      --project src/CryptoPriceTracker.Infrastructure \
       --startup-project src/CryptoPriceTracker.Api
 
-# Launch application
+# Launch
 > dotnet run --project src/CryptoPriceTracker.Api
-# Navigate to http://localhost:5000
+# Browser
+→ https://localhost:7207/Home/Index  (UI)
+→ https://localhost:7207/swagger      (API docs)
 ```
 
 ---
 
-## 7 · Test Strategy
+## 6 · Test Suite
 
-- **Unit**: Application handlers tested with mocked ports (Moq).
-- **Integration**: Infrastructure tested using SQLite in‑memory & Respawn to reset state.
-- GitHub Actions workflow runs `dotnet test` on every push.
+```bash
+> dotnet test
+# ➜  Test Run Successful. Total tests: 2  (handlers coverage)
+```
 
----
-
-## 8 · Outstanding TODO
-
--
+- `GetLatestPricesHandlerTests` – returns neutral price when no history.
+- `UpdatePricesHandlerTests` – ignores duplicate timestamp, repo not invoked.
 
 ---
 
-## 9 · Changelog
+## 7 · Usage Walk‑Through
 
-|  Date           | Change                                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **18 Jun 2025** | Initial Clean Architecture skeleton compiled; DI, EF, Polly, MediatR, FluentValidation wired. |
+1. **Open UI** → Click **⟳ Update Prices**.
+2. Spinner appears, backend POST fetches CoinGecko, inserts deduped rows.
+3. Table fades‑in with fresh prices, icon, local time, arrow trend. Subsequent clicks show `Updated (0)` when no new data.
+4. Swagger allows manual API testing.
 
 ---
 
+## 8 · Deliverables Checklist
+
+| ID     | Status                                          |
+| ------ | ----------------------------------------------- |
+| **A1** | ✅ .NET 6.0.428 build green                      |
+| **A2** | ✅ Update logic fixed, async & dedupe            |
+| **A3** | ✅ POST / GET endpoints operational & documented |
+| **A4** | ✅ Razor UI shows all required columns, Luxon TZ |
+| **A5** | ✅ `IconUrl` saved on first fetch                |
+| **A6** | ✅ Spinner + success/failure badge               |
+| **A7** | ✅ 2 unit tests pass (`dotnet test`)             |
+| **A8** | ✅ `.gitignore` excludes DB & migrations         |
+| **A9** | ✅ README details structure & assumptions        |
+
+---
+
+## 9 · Assumptions & Decisions
+
+- **Two seed assets** (Bitcoin, Ethereum) configured in `OnModelCreating` for predictable first run.
+- **Price trend** compares latest vs. previous record; if only one record ➞ neutral arrow.
+- **Currency fixed to USD** as CoinGecko default; easily extendable.
+- **Luxon** chosen over native `Intl` for consistent TZ formatting across browsers.
+- Skipped advanced validation (e.g. rate‑limit back‑off) to stay within 5‑day scope.
+
+---
+
+## 10 · Changelog (abridged)
+
+| Date        | Note                                             |
+| ----------- | ------------------------------------------------ |
+| 18‑Jun‑2025 | Initial Clean Architecture skeleton & DI wiring. |
+| 18‑Jun‑2025 | Added CoinGecko client with Polly retry.         |
+| 19‑Jun‑2025 | Razor UI, spinner, tests & README finalized.     |
+
+---
+
+*Prepared by ****German Rivera**** – solution branch: **`solution/german-rivera`**.*

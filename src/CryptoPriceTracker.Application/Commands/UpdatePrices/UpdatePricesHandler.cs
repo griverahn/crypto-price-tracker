@@ -38,7 +38,10 @@ public class UpdatePricesHandler :
 
                 // Update icon if empty
                 if (string.IsNullOrEmpty(asset.IconUrl) && !string.IsNullOrEmpty(icon))
+                {
                     asset.IconUrl = icon;
+                    await _repo.UpdateAssetAsync(asset, ct);
+                }
 
                 // Avoid duplicates using the loaded history
                 bool exists = asset.PriceHistory?.Any(p => p.Date == tsUtc) ?? false;

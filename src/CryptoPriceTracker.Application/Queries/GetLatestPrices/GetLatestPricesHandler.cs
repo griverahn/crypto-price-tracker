@@ -38,7 +38,8 @@ public class GetLatestPricesHandler :
                     "USD",
                     a.IconUrl ?? string.Empty,
                     DateTime.UtcNow,
-                    "➖");
+                    "➖",
+                    null);
             }
 
             var previous = prices.Skip(1).FirstOrDefault(); 
@@ -50,6 +51,9 @@ public class GetLatestPricesHandler :
             string trend = latestPrice > previousPrice ? "🔼"
                         : latestPrice < previousPrice ? "🔽"
                         : "➖";
+                        
+            decimal? percentageChange = previousPrice == 0 ? null
+            : Math.Round(((latestPrice - previousPrice) / previousPrice) * 100, 2);
 
             return new LatestPriceDto(
                 a.Name,
@@ -58,7 +62,8 @@ public class GetLatestPricesHandler :
                 "USD",
                 a.IconUrl ?? string.Empty,
                 latest?.Date ?? DateTime.UtcNow,
-                trend
+                trend,
+                percentageChange
             );
         }).ToList();
 

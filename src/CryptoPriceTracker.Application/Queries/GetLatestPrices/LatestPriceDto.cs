@@ -7,4 +7,5 @@ public record LatestPriceDto(
     string Currency,
     string IconUrl,
     DateTime TimestampUtc,
-    string Trend); 
+    string Trend,
+    decimal? PercentageChange); 

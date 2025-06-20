@@ -35,3 +35,16 @@ td img {
 tr:nth-child(even) {
     background: #f5f5f5;
 }
+
+.trend-up   { color:#16a34a }
+.trend-down { color:#dc2626 } 
+.trend-flat { color:#3b82f6 } 
+
+/*  Table buttons */
+button.link{
+  background:none;border:none;color:#2563eb;cursor:pointer;padding:0;
+}
+button.link:hover{text-decoration:underline}
+
+/* Chart spacing */
+#priceChart{margin-top:1.5rem}

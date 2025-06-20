@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using CryptoPriceTracker.Application.Commands.UpdatePrices;
 using CryptoPriceTracker.Application.Queries.GetLatestPrices;
+using CryptoPriceTracker.Application.Queries.GetHistory;
 
 namespace CryptoPriceTracker.Api.Controllers
 {
@@ -28,9 +29,10 @@ namespace CryptoPriceTracker.Api.Controllers
         {
             var result = await _mediator.Send(new UpdatePricesCommand());
 
-            return Ok(new {
-                success      = result.Success,
-                updatedCount = result.Inserted, 
+            return Ok(new
+            {
+                success = result.Success,
+                updatedCount = result.Inserted,
                 errorMessage = result.Error
             });
         }
@@ -45,6 +47,18 @@ namespace CryptoPriceTracker.Api.Controllers
         {
             var latest = await _mediator.Send(new GetLatestPricesQuery());
             return Ok(latest);
+        }
+        
+        /// <summary>
+        /// Returns the price history for a specific asset symbol.
+        /// </summary>
+        [HttpGet("history/{symbol}")]
+        public async Task<IActionResult> GetHistory(
+                string symbol, [FromQuery] int days = 30)
+        {
+            var query  = new GetHistoryQuery(symbol, days);
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
     }
 }

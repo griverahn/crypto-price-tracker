@@ -2,97 +2,49 @@
     ViewData["Title"] = "Crypto Price Tracker";
 }
 
-<!-- ========= Title & Controls ========= -->
+<!-- ========== Title & Controls ========== -->
 <h1 class="title">Crypto Price Tracker</h1>
 
 <button id="updateBtn">⟳ Update Prices</button>
 <span id="statusMsg"></span>
 
-<!-- ========= Prices Table ========= -->
+<!-- ========== Prices Table ========== -->
 <table id="pricesTable">
     <thead>
         <tr>
             <th>Icon</th>
             <th>Name</th>
             <th>Symbol</th>
-            <th>Price&nbsp;(USD)</th>
-            <th>Last&nbsp;Updated</th>
+            <th>Price (USD)</th>
+            <th>Last Updated</th>
+            <th>Change (%)</th>
             <th>Trend</th>
         </tr>
     </thead>
     <tbody><!-- rows inserted via JS --></tbody>
 </table>
 
-<!-- ========= Styles ========= -->
-<link rel="stylesheet" href="~/css/site.css" />
-<style>
-    /* lightweight spinner & fade-in */
-    .spin          { width:16px;height:16px;border:3px solid #ddd;border-top:3px solid #14b8a6;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;vertical-align:middle }
-    @@keyframes spin { to { transform:rotate(360deg) } }
+<!-- ========== Historical Chart ========== -->
+<canvas id="priceChart" height="120"></canvas>
 
-    tr.fade-in     { animation:fade .4s ease-in-out }
-    @@keyframes fade{ from{opacity:0} to{opacity:1} }
+<!-- ========== Styles ========== -->
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+<style>
+/* spinner & fade-in */
+.spin          { width:16px;height:16px;border:3px solid #ddd;border-top:3px solid #14b8a6;border-radius:50%;
+                 display:inline-block;animation:spin 1s linear infinite;vertical-align:middle }
+@@keyframes spin { to{ transform:rotate(360deg) } }
+
+tr.fade-in     { animation:fade .4s ease-in-out }
+@@keyframes fade{ from{opacity:0} to{opacity:1} }
+
+/* clickable name button */
+button.link    { background:none;border:none;color:#2563eb;cursor:pointer;padding:0 }
+button.link:hover{text-decoration:underline}
 </style>
 
-<!-- ========= Date/Time helper ========= -->
+<!-- ========== Libs & App JS ========== -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-
-<!-- ========= Behaviour ========= -->
-<script>
-(() => {
-
-  const tbody      = document.querySelector("#pricesTable tbody");
-  const btnUpdate  = document.getElementById("updateBtn");
-  const statusSpan = document.getElementById("statusMsg");
-
-  /* ---------- Helpers ---------- */
-  const toLocal = utc =>
-    luxon.DateTime.fromISO(utc, { zone: "utc" })
-                  .setZone(luxon.DateTime.local().zoneName)
-                  .toLocaleString(luxon.DateTime.DATETIME_MED);
-
-  const setStatus = html => { statusSpan.innerHTML = html; };
-
-  /* ---------- Render ---------- */
-  async function loadTable() {
-    tbody.innerHTML = "";
-    const res  = await fetch("/api/crypto/latest-prices");
-    const list = await res.json();
-
-    list.forEach(r => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.iconUrl ? `<img src="${r.iconUrl}" width="24"/>` : r.symbol}</td>
-        <td>${r.name}</td>
-        <td>${r.symbol}</td>
-        <td>$${r.price.toLocaleString()}</td>
-        <td>${toLocal(r.timestampUtc)}</td>
-        <td>${r.trend}</td>`;
-      tr.classList.add("fade-in");
-      tbody.appendChild(tr);
-    });
-  }
-
-  /* ---------- Update button ---------- */
-  btnUpdate.addEventListener("click", async () => {
-    btnUpdate.disabled = true;
-    setStatus('<span class="spin"></span>&nbsp;Updating…');
-
-    const res  = await fetch("/api/crypto/update-prices", { method: "POST" });
-    const body = res.ok ? await res.json() : null;
-
-    if (res.ok && (body.inserted ?? body.updatedCount ?? 0) >= 0) {
-      const count = body.inserted ?? body.updatedCount;
-      setStatus(`✅&nbsp;Updated&nbsp;(${count})`);
-      await loadTable();
-    } else {
-      setStatus("❌&nbsp;Update&nbsp;failed");
-    }
-    btnUpdate.disabled = false;
-  });
-
-  /* ---------- First load ---------- */
-  loadTable();
-
-})();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="~/js/main.js" asp-append-version="true"></script>
